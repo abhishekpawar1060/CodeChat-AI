@@ -23,6 +23,11 @@ router.get('/profile',
     userController.profileController
 );
 
+router.get('/logout', 
+    authMiddleware.authUser,
+    userController.logoutController
+);
+
 
 
 
