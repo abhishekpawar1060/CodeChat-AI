@@ -9,8 +9,8 @@ const userSchema = new mongoose.Schema({
         unique: true,
         trim: true,
         lowercase: true,
-        minLength: [6, 'Eamil must be at least 6 charcters'],
-        maxLength: [50, 'Eamil must not be longer than 50 charcters'],
+        minLength: [6, 'Email must be at least 6 charcters'],
+        maxLength: [50, 'Email must not be longer than 50 charcters'],
     },
 
     password: {
@@ -19,15 +19,15 @@ const userSchema = new mongoose.Schema({
     }
 })
 
-userSchema.static.hashPassword = async function (password){
-    return  await bcrypt.hash(password, 10);
+userSchema.statics.hashPassword = async function (password){
+    return await bcrypt.hash(password, 10);
 } 
 
-userSchema.method.isValidPassword = async function (password) {
+userSchema.methods.isValidPassword = async function (password) {
     return await bcrypt.compare(password, this.password);
 }
 
-userSchema.method.generateJWT = function() {
+userSchema.methods.generateJWT = function() {
     return jwt.sign({ email: this.email}, process.env.JWT_SECRET)
 }
 
