@@ -28,6 +28,11 @@ router.get('/logout',
     userController.logoutController
 );
 
+router.get('/all',
+    authMiddleware.authUser,
+    userController.getAllUsersController
+)
+
 
 
 
