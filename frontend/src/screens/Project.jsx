@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { useLocation } from 'react-router-dom';
 import axios from '../config/axios';
 import { intializeSocket, receiveMessage, sendMessage } from '../config/socket';
@@ -15,6 +15,8 @@ function Project() {
     const [message, setMessage] = useState('');
     const [users, setUsers] = useState([]);
     const [project, setProject] = useState(location.state.project);
+
+    const messageBox = React.createRef();
 
     const { user } = useContext(UserContext);
 
@@ -46,14 +48,16 @@ function Project() {
 
     const send = () => {
 
-        console.log(user);
+        // console.log(user);
         
         sendMessage('project-message',{
             message,
-            sender: user._id,
+            sender: user,
         })
 
         setMessage("");
+        appendOutgoingMessage(message);
+
     }
 
     useEffect(() => {
@@ -62,6 +66,7 @@ function Project() {
 
         receiveMessage('project-message', data => {
             console.log(data);
+            appendIncomingMessage(data);
             
         });
         
@@ -80,11 +85,43 @@ function Project() {
         })
     }, []);
     
+
+    function appendIncomingMessage(messageObject){
+        const messageBox = document.querySelector('.message-box')
+        const message = document.createElement('div');
+        message.classList.add('message', 'max-w-56', 'p-2', 'flex', 'flex-col', 'bg-slate-50', 'w-fit', 'rounded-md');
+        message.innerHTML = `<small class='opacity-65 text-xs'>${messageObject.sender.email}</small>
+            <p class='text-sm'>${messageObject.message}</p>
+        `
+
+        messageBox.appendChild(message);
+        scrollToBottom();
+    }
     
+
+    function appendOutgoingMessage(message){
+        const messageBox = document.querySelector('.message-box')
+        const newMessage = document.createElement('div');
+        newMessage.classList.add('message','ml-auto', 'max-w-56', 'p-2', 'flex', 'flex-col', 'bg-slate-50', 'w-fit', 'rounded-md');
+        newMessage.innerHTML = `<small class='opacity-65 text-xs'>${message.sender.email}</small>
+            <p class='text-sm'>${message.message}</p>
+        `
+
+        messageBox.appendChild(newMessage);
+        scrollToBottom();
+
+    }
+
+    function scrollToBottom() {
+        if (messageBox.current) {
+            messageBox.current.scrollTop = messageBox.current.scrollHeight;
+        }
+    }
+
     return (
         <main className='h-screen w-screen flex'>
-            <section className='left relative flex flex-col h-full min-w-96 bg-slate-300'>
-                <header className='flex justify-between items-center p-2 px-4 w-full bg-slate-100'>
+            <section className='left relative flex flex-col h-screen min-w-96 bg-slate-300'>
+                <header className='flex justify-between items-center p-2 px-4 w-full bg-slate-100 absolute top-0'>
                     <button 
                         onClick={() => setIsModalOpen(!isModalOpen)}
                         className='flex gap-1'
@@ -101,20 +138,14 @@ function Project() {
                     </button>
                 </header>
 
-                <div className="conversation-area flex-grow flex flex-col">
-                    
-                    <div className="message-box p-1 flex-grow flex flex-col gap-1">
-                        <div className="incoming message max-w-56 flex flex-col p-2 bg-slate-50 w-fit rounded-md">
-                            <small className='opacity-65 text-xs'>test@gmail.com</small>
-                            <p className='text-sm'>Hi, how are you?</p>
-                        </div>
-                        <div className="outgoing message ml-auto max-w-56 flex flex-col p-2 bg-slate-50 w-fit rounded-md">
-                            <small className='opacity-65 text-xs'>test@gmail.com</small>
-                            <p className='text-sm'>Hi, how are you Lorem ipsum dolor sit amet.?</p>
-                        </div>
+                <div className="conversation-area pt-14 pb-10 flex-grow flex flex-col h-full relative">
+                    <div 
+                        ref={messageBox} 
+                        className="message-box p-1 flex-grow flex flex-col gap-1 overflow-auto max-h-full"
+                    >                    
                     </div>
 
-                    <div className="inputField w-full flex ">
+                    <div className="inputField w-full flex absolute bottom-0">
                         <input 
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
